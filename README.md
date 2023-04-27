@@ -7,8 +7,8 @@ It is used to add support for data sync when using Magento MSI.
 
 ## Compatible with:
 
-- Magento Open Source (CE) 2.3.7-p4, 2.4.5.
-- Magento Commerce (EE) 2.3.7-p4, 2.4.5.
+- Magento Open Source (CE) 2.3.7-p4, 2.4.6.
+- Magento Commerce (EE) 2.3.7-p4, 2.4.6.
 
 _Note, while this module will run on a number of earlier versions, official compatibility is only provided for the latest patch version (as above)._
 
