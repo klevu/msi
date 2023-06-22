@@ -4,7 +4,34 @@
     <preference for="Klevu\Search\Api\Service\Catalog\Product\GetStockStatusByIdInterface"
                 type="Klevu\Msi\Service\Catalog\Product\GetStockStatusById"/>
 
+    <preference for="Klevu\Search\Api\Service\Catalog\Product\JoinParentStockToSelectInterface"
+                type="Klevu\Msi\Service\Catalog\Product\JoinParentStockToSelect"/>
+
+    <preference for="Klevu\Search\Api\Service\Catalog\Product\GetStockIdForWebsiteInterface"
+                type="Klevu\Msi\Service\Catalog\Product\GetStockIdForWebsite"/>
+
+    <preference for="Klevu\Search\Api\Service\Catalog\Product\Stock\GetCompositeProductStockStatusInterface"
+                type="Klevu\Msi\Service\Catalog\Product\Stock\GetCompositeProductStockStatus"/>
+
+    <preference for="Klevu\Msi\Api\Service\Catalog\Product\Stock\GetStockItemDataInterface"
+                type="Klevu\Msi\Service\Catalog\Product\Stock\GetStockItemData"/>
+
+    <preference for="Klevu\Msi\Api\Service\Catalog\Product\Stock\GetGlobalStockStatusInterface"
+                type="Klevu\Msi\Service\Catalog\Product\Stock\GetGlobalStockStatus"/>
+
     <type name="Klevu\Msi\Service\Catalog\Product\GetStockStatusById">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Msi\Service\Catalog\Product\GetStockIdForWebsite">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Msi\Service\Catalog\Product\Stock\GetCompositeProductStockStatus">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
         </arguments>
