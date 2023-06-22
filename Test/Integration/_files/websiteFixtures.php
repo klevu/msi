@@ -8,6 +8,8 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\Website;
 use Magento\TestFramework\Helper\Bootstrap;
 
+require __DIR__ . '/websiteFixtures_rollback.php';
+
 $websiteFixtures = [
     'klevu_test_website_1' => [
         'name' => '[Klevu] Test Website 1',
@@ -39,18 +41,18 @@ $websiteFixtures = [
 
 $objectManager = Bootstrap::getObjectManager();
 
-if (class_exists(\Magento\Elasticsearch\SearchAdapter\ConnectionManager::class)) {
-    try {
-        /** @var \Magento\Elasticsearch\SearchAdapter\ConnectionManager $connectionManager */
-        $connectionManager = $objectManager->get(\Magento\Elasticsearch\SearchAdapter\ConnectionManager::class);
-        $elasticsearchConnection = $connectionManager->getConnection([]);
-        $elasticsearchConnection->deleteIndex('magento2_*');
-    } catch (\RuntimeException $e) {
-        if ('Elasticsearch client is not set.' !== $e->getMessage()) {
-            throw $e;
-        }
-    }
-}
+//if (class_exists(\Magento\Elasticsearch\SearchAdapter\ConnectionManager::class)) {
+//    try {
+//        /** @var \Magento\Elasticsearch\SearchAdapter\ConnectionManager $connectionManager */
+//        $connectionManager = $objectManager->get(\Magento\Elasticsearch\SearchAdapter\ConnectionManager::class);
+//        $elasticsearchConnection = $connectionManager->getConnection([]);
+//        $elasticsearchConnection->deleteIndex('magento2_*');
+//    } catch (\RuntimeException $e) {
+//        if ('Elasticsearch client is not set.' !== $e->getMessage()) {
+//            throw $e;
+//        }
+//    }
+//}
 
 foreach ($websiteFixtures as $websiteCode => $websiteFixture) {
     /** @var Website $website */
@@ -118,7 +120,9 @@ foreach ($websiteFixtures as $websiteCode => $websiteFixture) {
     }
 }
 
-$indexerFactory = $objectManager->get(IndexerFactory::class);
-$indexer = $indexerFactory->create();
-$indexer->load('catalogsearch_fulltext');
-$indexer->reindexAll();
+// Indexing catalog here causes the stock resolver to cache the stock for each sales channel.
+// We haven't created the stocks yet so no catalog indexing can take place here.
+//$indexerFactory = $objectManager->get(IndexerFactory::class);
+//$indexer = $indexerFactory->create();
+//$indexer->load('catalogsearch_fulltext');
+//$indexer->reindexAll();
