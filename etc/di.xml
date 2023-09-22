@@ -19,6 +19,9 @@
     <preference for="Klevu\Msi\Api\Service\Catalog\Product\Stock\GetGlobalStockStatusInterface"
                 type="Klevu\Msi\Service\Catalog\Product\Stock\GetGlobalStockStatus"/>
 
+    <preference for="Klevu\Msi\Api\Service\Catalog\Product\GetProductIdsBySourceItemIdsInterface"
+                type="Klevu\Msi\Service\Catalog\Product\GetProductIdsBySourceItemIds"/>
+
     <type name="Klevu\Msi\Service\Catalog\Product\GetStockStatusById">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
@@ -34,6 +37,27 @@
     <type name="Klevu\Msi\Service\Catalog\Product\Stock\GetCompositeProductStockStatus">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Msi\Model\Indexer\Sync\ProductSyncStockIndexer">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Search\Logger\Logger\Search</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Search\Plugin\Mview\View">
+        <arguments>
+            <argument name="indexers" xsi:type="array">
+                <item name="klevu_product_sync_stock_msi"
+                      xsi:type="const">Klevu\Msi\Model\Indexer\Sync\ProductSyncStockIndexer::INDEXER_ID</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Msi\Service\Catalog\Product\GetProductIdsBySourceItemIds">
+        <arguments>
+            <argument name="productTableName" xsi:type="string">catalog_product_entity</argument>
         </arguments>
     </type>
 </config>
