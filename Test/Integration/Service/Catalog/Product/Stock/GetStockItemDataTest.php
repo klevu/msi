@@ -17,6 +17,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\CatalogInventory\Model\Stock;
 use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\Search\SearchCriteriaBuilderFactory;
+use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\InventoryApi\Api\Data\StockInterface;
@@ -174,8 +175,18 @@ class GetStockItemDataTest extends TestCase
         $this->assertArrayHasKey($productConfigurableOos->getId(), $stockData);
         $productStockConfigurableOos = $stockData[$productConfigurableOos->getId()];
         $this->assertArrayhasKey(MsiGetStockItemDataInterface::IS_SALABLE, $productStockConfigurableOos);
-        // configurable products in inventory_stock_x do not take into parent stock status and return in stock
-        $this->assertSame('1', $productStockConfigurableOos[MsiGetStockItemDataInterface::IS_SALABLE]);
+        if (version_compare($this->getMagentoVersion(), '2.4.6', '<')) {
+            /**
+             * Prior to Magento 2.4.6 (MSI 1.2.6) configurable products in inventory_stock_x
+             * do not take into account child stock status and return in stock when all child products are OOS
+             *
+             * 1.2.6 release:
+             * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+             */
+            $this->assertSame('1', $productStockConfigurableOos[MsiGetStockItemDataInterface::IS_SALABLE]);
+        } else {
+            $this->assertSame('0', $productStockConfigurableOos[MsiGetStockItemDataInterface::IS_SALABLE]);
+        }
         $this->assertArrayhasKey(MsiGetStockItemDataInterface::QUANTITY, $productStockConfigurableOos);
         $this->assertSame('200.0000', $productStockConfigurableOos[MsiGetStockItemDataInterface::QUANTITY]);
 
@@ -186,10 +197,39 @@ class GetStockItemDataTest extends TestCase
         $this->assertArrayhasKey(MsiGetStockItemDataInterface::QUANTITY, $productConfigurableInStockChildOos);
         $this->assertSame('0.0000', $productConfigurableInStockChildOos[MsiGetStockItemDataInterface::QUANTITY]);
 
-        // bundle products are not available in inventory_stock_x
-        $this->assertArrayNotHasKey($productBundleInStock->getId(), $stockData);
-        $this->assertArrayNotHasKey($productBundleOos->getId(), $stockData);
-        $this->assertArrayNotHasKey($productBundleInStockChildOos->getId(), $stockData);
+        if (version_compare($this->getMagentoVersion(), '2.4.6', '<')) {
+            /**
+             * Prior to Magento 2.4.6 (MSI 1.2.6)
+             * bundle products are not available in inventory_stock_x
+             *
+             * 1.2.6 release:
+             * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+             */
+            $this->assertArrayNotHasKey($productBundleInStock->getId(), $stockData);
+            $this->assertArrayNotHasKey($productBundleOos->getId(), $stockData);
+            $this->assertArrayNotHasKey($productBundleInStockChildOos->getId(), $stockData);
+        } else {
+            $this->assertArrayHasKey($productBundleInStock->getId(), $stockData);
+            $productBundleInStockData = $stockData[$productBundleInStock->getId()];
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::IS_SALABLE, $productBundleInStockData);
+            $this->assertSame('1', $productBundleInStockData[MsiGetStockItemDataInterface::IS_SALABLE]);
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::QUANTITY, $productBundleInStockData);
+            $this->assertSame('200.0000', $productBundleInStockData[MsiGetStockItemDataInterface::QUANTITY]);
+
+            $this->assertArrayHasKey($productBundleOos->getId(), $stockData);
+            $productBundleOosData = $stockData[$productBundleOos->getId()];
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::IS_SALABLE, $productBundleOosData);
+            $this->assertSame('0', $productBundleOosData[MsiGetStockItemDataInterface::IS_SALABLE]);
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::QUANTITY, $productBundleOosData);
+            $this->assertSame('200.0000', $productBundleOosData[MsiGetStockItemDataInterface::QUANTITY]);
+
+            $this->assertArrayHasKey($productBundleInStockChildOos->getId(), $stockData);
+            $productBundleInStockChildOosData = $stockData[$productBundleInStockChildOos->getId()];
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::IS_SALABLE, $productBundleInStockChildOosData);
+            $this->assertSame('0', $productBundleInStockChildOosData[MsiGetStockItemDataInterface::IS_SALABLE]);
+            $this->assertArrayhasKey(MsiGetStockItemDataInterface::QUANTITY, $productBundleInStockChildOosData);
+            $this->assertSame('0.0000', $productBundleInStockChildOosData[MsiGetStockItemDataInterface::QUANTITY]);
+        }
 
         static::loadWebsiteFixturesRollback();
     }
@@ -210,6 +250,19 @@ class GetStockItemDataTest extends TestCase
     private function instantiateGetStockItemDataService(array $arguments = []): GetStockItemData
     {
         return $this->objectManager->create(GetStockItemData::class, $arguments);
+    }
+
+    /**
+     * @return string
+     */
+    private function getMagentoVersion()
+    {
+        $productMeta = $this->objectManager->get(ProductMetadataInterface::class);
+        $version = $productMeta->getVersion();
+
+        return $version === 'UNKNOWN'
+            ? '0.0.0'
+            : $version;
     }
 
     /**

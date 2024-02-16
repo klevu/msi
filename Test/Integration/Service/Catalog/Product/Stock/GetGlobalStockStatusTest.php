@@ -15,6 +15,7 @@ use Klevu\Msi\Service\Catalog\Product\Stock\GetGlobalStockStatus;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
+use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
@@ -77,10 +78,25 @@ class GetGlobalStockStatusTest extends TestCase
         );
 
         $stockItem3 = $this->filterStockItems($stockItems, $product3);
-        $this->assertTrue(
-            $stockItem3->getIsInStock(),
-            'In Stock: klevu_configurable_synctest_instock_childrenoos'
-        );
+
+        if (version_compare($this->getMagentoVersion(), '2.4.6', '<')) {
+            /**
+             * Prior to Magento 2.4.6 (MSI 1.2.6)
+             * configurable products in global do not take into account child products
+             *
+             * 1.2.6 release:
+             * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+             */
+            $this->assertTrue(
+                $stockItem3->getIsInStock(),
+                'In Stock: klevu_configurable_synctest_instock_childrenoos'
+            );
+        } else {
+            $this->assertFalse(
+                $stockItem3->getIsInStock(),
+                'In Stock: klevu_configurable_synctest_instock_childrenoos'
+            );
+        }
 
         static::loadWebsiteFixturesRollback();
     }
@@ -166,10 +182,24 @@ class GetGlobalStockStatusTest extends TestCase
         );
 
         $stockItem3 = $this->filterStockItems($stockItems, $product3);
-        $this->assertTrue(
-            $stockItem3->getIsInStock(),
-            'In Stock: klevu_configurable_synctest_instock_childrenoos'
-        );
+        if (version_compare($this->getMagentoVersion(), '2.4.6', '<')) {
+            /**
+             * Prior to Magento 2.4.6 (MSI 1.2.6)
+             * configurable products in inventory_stock_x do not take into account child products
+             *
+             * 1.2.6 release:
+             * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+             */
+            $this->assertTrue(
+                $stockItem3->getIsInStock(),
+                'In Stock: klevu_configurable_synctest_instock_childrenoos'
+            );
+        } else {
+            $this->assertFalse(
+                $stockItem3->getIsInStock(),
+                'In Stock: klevu_configurable_synctest_instock_childrenoos'
+            );
+        }
 
         static::loadWebsiteFixturesRollback();
     }
@@ -254,6 +284,19 @@ class GetGlobalStockStatusTest extends TestCase
     private function instantiateGetGlobalStockStatus(array $arguments = []): GetGlobalStockStatus
     {
         return $this->objectManager->create(GetGlobalStockStatus::class, $arguments);
+    }
+
+    /**
+     * @return string
+     */
+    private function getMagentoVersion()
+    {
+        $productMeta = $this->objectManager->get(ProductMetadataInterface::class);
+        $version = $productMeta->getVersion();
+
+        return $version === 'UNKNOWN'
+            ? '0.0.0'
+            : $version;
     }
 
     /**
