@@ -140,8 +140,16 @@ class GetCompositeProductStockStatus implements GetCompositeProductStockStatusIn
      */
     private function isConfigurableProductInStock(ProductInterface $product, int $stockId): bool
     {
-        // Configurable products have a single entry in `inventory_stock_x`,
-        // which takes into account only their children
+        /**
+         * Prior to Magento 2.4.6 (MSI 1.2.6)
+         * Configurable products have a single entry in `inventory_stock_x`,
+         * which takes into account only their children
+         *
+         * 1.2.6 release:
+         * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+         *
+         * @TODO optimise this for Magento 2.4.6 and above
+         */
         $return = false;
         try {
             $stockItemsData = $this->getStockItemData->execute([$product->getId()], $stockId);
@@ -169,9 +177,16 @@ class GetCompositeProductStockStatus implements GetCompositeProductStockStatusIn
      */
     private function isBundleProductInStock(ProductInterface $product, int $stockId): bool
     {
-        // Bundle products are not present in `inventory_stock_x` like configurable.
-        // However, their children are present.
-
+        /**
+         * Prior to Magento 2.4.6 (MSI 1.2.6)
+         * Bundle products are not present in `inventory_stock_x` like configurable.
+         * However, their children are present.
+         *
+         * 1.2.6 release:
+         * https://experienceleague.adobe.com/docs/commerce-admin/inventory/release-notes.html?lang=en#v1.2.6
+         *
+         * @TODO optimise this for Magento 2.4.6 and above
+         */
         $return = false; // bundle product must have at least one child.
         try {
             /** @var BundleType $typeInstance */
